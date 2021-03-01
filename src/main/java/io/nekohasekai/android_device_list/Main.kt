@@ -10,30 +10,28 @@ object Main {
     fun main(args: Array<String>) {
         // val devices = HttpUtil.downloadString("https://raw.githubusercontent.com/pbakondy/android-device-list/master/devices.json", CharsetUtil.CHARSET_UTF_8)
 
-        val deviceList = JSONArray(File("devices.json").readText())
-            .toList(JSONObject::class.java)
-
         val devices = HashSet<String>()
 
-        devices.addAll(deviceList
-            .filter { it.getStr("brand").isNullOrBlank() }
-            .map { it.getStr("model") })
-
-        for (device in deviceList
-            .filter { !it.getStr("brand").isNullOrBlank() }
-            .iterator()) {
+        for (device in JSONArray(File("devices.json").readText())
+            .toList(JSONObject::class.java)) {
 
             var brand = device.getStr("brand")
             if (brand.contains("(")) {
                 brand = (brand.substringBefore("(") + brand.substringAfter(")", "")).trim()
             }
             val model = device.getStr("model")
+            val name = device.getStr("name")
+            val deviceName = device.getStr("device")
 
-            if (model.toLowerCase().contains(brand.toLowerCase())) {
-                devices.add(model)
-            } else {
-                devices.add("$brand $model")
+            var deviceModel = brand
+
+            deviceModel += when {
+                name.isNotBlank() -> " $name"
+                model.isNotBlank() -> " $model"
+                else -> " $deviceName"
             }
+
+            devices.add(deviceModel)
 
         }
 
